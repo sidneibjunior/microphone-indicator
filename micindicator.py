@@ -16,10 +16,12 @@ from urllib2 import Request, urlopen # URLError
 gi.require_version('Gtk', '3.0')
 gi.require_version('AppIndicator3', '0.1')
 gi.require_version('Notify', '0.7')
+gi.require_version('Keybinder', '3.0')
 
 from gi.repository import Gtk as gtk
 from gi.repository import AppIndicator3 as appindicator
 from gi.repository import Notify as notify
+from gi.repository import Keybinder
 
 
 APPINDICATOR_ID = 'micindicator'
@@ -30,7 +32,17 @@ class Indicator():
         self.indicator = appindicator.Indicator.new(APPINDICATOR_ID, self.get_current_state_icon(), appindicator.IndicatorCategory.SYSTEM_SERVICES)
         self.indicator.set_status(appindicator.IndicatorStatus.ACTIVE)
         self.indicator.set_menu(self.build_menu())
+        self.update_mic_state()
         notify.init(APPINDICATOR_ID)
+
+        keystr = "<Ctrl><Alt><Shift>M"
+        Keybinder.init()
+        Keybinder.set_use_cooked_accelerators(False)
+        Keybinder.bind(keystr, self.callback_toggle_mic, "keystring %s (user data)" % keystr)
+        print ("Press '" + keystr + "' to toggle microphone mute")
+
+    def callback_toggle_mic(self, keystr, user_data):
+        self.toggle_mic(None)
 
     def get_current_state_icon(self):
         if self.get_current_mic_state() == "[off]":
@@ -53,8 +65,6 @@ class Indicator():
         self.item_toggle.connect('activate', self.toggle_mic)
         menu.append(self.item_toggle)
 
-        self.update_menu_toggle_label()
-
         item_quit1 = gtk.MenuItem('Quit')
         item_quit1.connect('activate', self.quit1)
         menu.append(item_quit1)
@@ -62,6 +72,9 @@ class Indicator():
         menu.show_all()
         return menu
 
+    def update_mic_state(self):
+        self.update_menu_toggle_label()
+        self.indicator.set_icon(self.get_current_state_icon())
 
     def update_menu_toggle_label(self):
         if self.get_current_mic_state() == "[off]":
@@ -69,12 +82,9 @@ class Indicator():
         else:
             self.item_toggle.set_label("Turn Microphone Off")
 
-
-
     def toggle_mic(self, _):
         subprocess.call('amixer set Capture toggle', shell=True)
-        self.indicator.set_icon(self.get_current_state_icon())
-        self.update_menu_toggle_label()
+        self.update_mic_state()
         
 
     def quit1(self, _):
