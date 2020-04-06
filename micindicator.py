@@ -20,25 +20,31 @@ gi.require_version('Keybinder', '3.0')
 
 from gi.repository import Gtk as gtk
 from gi.repository import AppIndicator3 as appindicator
-from gi.repository import Notify as notify
+from gi.repository import Notify
 from gi.repository import Keybinder
+from threading import Timer
 
 
 APPINDICATOR_ID = 'micmuteindicator'
 keystr = "<Ctrl><Alt><Shift>M"
 
 class Indicator():
+    
+
     def __init__(self):
         self.indicator = appindicator.Indicator.new(APPINDICATOR_ID, self.get_current_state_icon(), appindicator.IndicatorCategory.SYSTEM_SERVICES)
         self.indicator.set_status(appindicator.IndicatorStatus.ACTIVE)
         self.indicator.set_menu(self.build_menu())
         self.update_mic_state()
-        notify.init(APPINDICATOR_ID)
-  
+        Notify.init(APPINDICATOR_ID)
+
         Keybinder.init()
         Keybinder.set_use_cooked_accelerators(False)
         Keybinder.bind(keystr, self.callback_toggle_mic, "keystring %s (user data)" % keystr)
         print ("Press '" + keystr + "' to toggle microphone mute")
+
+    
+
 
     def callback_toggle_mic(self, keystr, user_data):
         self.toggle_mic(None)
@@ -84,14 +90,35 @@ class Indicator():
     def toggle_mic(self, _):
         subprocess.call('amixer set Capture toggle', shell=True)
         self.update_mic_state()
+
+        self.show_toggle_notification()
         
+    def show_toggle_notification(self):
+        self.notification = Notify.Notification.new("Notify")
+        title = ""
+        if self.get_current_mic_state() == "[off]":
+            title = "Microphone Muted"
+        else:
+            title = "Microphone is On"
+        
+        self.notification.update(title)
+        self.notification.show()
+
+        # creates a timer to close the notification as the 'set_timeout' Notify method is ignored by the server.
+        t = Timer(1.0, self.close_toggle_notification) 
+        t.start()
+    
+    def close_toggle_notification(self):
+        self.notification.close()
 
     def quit1(self, _):
-        notify.uninit()
+        Notify.uninit()
         gtk.main_quit()
 
 if __name__ == "__main__":
     Indicator()
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     gtk.main()
+
+
 
