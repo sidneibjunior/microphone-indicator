@@ -24,8 +24,8 @@ from gi.repository import Notify as notify
 from gi.repository import Keybinder
 
 
-APPINDICATOR_ID = 'micindicator'
-# amixer get Capture | egrep 'Front Left.*?\[o' | egrep -o '\[o.+\]'
+APPINDICATOR_ID = 'micmuteindicator'
+keystr = "<Ctrl><Alt><Shift>M"
 
 class Indicator():
     def __init__(self):
@@ -34,8 +34,7 @@ class Indicator():
         self.indicator.set_menu(self.build_menu())
         self.update_mic_state()
         notify.init(APPINDICATOR_ID)
-
-        keystr = "<Ctrl><Alt><Shift>M"
+  
         Keybinder.init()
         Keybinder.set_use_cooked_accelerators(False)
         Keybinder.bind(keystr, self.callback_toggle_mic, "keystring %s (user data)" % keystr)
@@ -78,9 +77,9 @@ class Indicator():
 
     def update_menu_toggle_label(self):
         if self.get_current_mic_state() == "[off]":
-            self.item_toggle.set_label("Turn Microphone On")
+            self.item_toggle.set_label("Turn Microphone On ( " + keystr + " )")
         else:
-            self.item_toggle.set_label("Turn Microphone Off")
+            self.item_toggle.set_label("Turn Microphone Off ( " + keystr + " )")
 
     def toggle_mic(self, _):
         subprocess.call('amixer set Capture toggle', shell=True)
