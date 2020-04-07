@@ -51,10 +51,10 @@ class Indicator():
 
     def get_current_state_icon(self):
         if self.get_current_mic_state() == "[off]":
-            icon_name = 'mic-mute.png'
+            icon_name = 'mute.svg'
         else:
-            icon_name = 'mic-on.png'
-        return os.path.join(os.path.dirname(os.path.abspath(__file__)), icon_name)
+            icon_name = 'on.svg'
+        return os.path.join(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'resources'), icon_name)
 
     def get_current_mic_state(self):
         ps = subprocess.Popen(("amixer", "get", "Capture"), stdout=subprocess.PIPE)
