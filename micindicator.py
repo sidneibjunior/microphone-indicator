@@ -58,9 +58,12 @@ class Indicator():
         aboutdialog.set_documenters(documenters)
         aboutdialog.set_website("https://github.com/sidneibjunior/microphone-indicator")
         aboutdialog.set_website_label("Source code at GitHub")
+        aboutdialog.connect("response", self.close_about_dialog)
 
         aboutdialog.show()
 
+    def close_about_dialog(self, action, parameter):
+        action.destroy()
 
     def callback_toggle_mic(self, keystr, user_data):
         self.toggle_mic(None)
